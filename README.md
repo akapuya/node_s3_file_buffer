@@ -1,9 +1,13 @@
 # node_s3_file_buffer
 
 About:
+This is a simplified self contained version of Streaming data, Json in this case to S3.
+Example of a full blown implementation with Kinesis, Lambda and S3 to stream data to S3, as described here:
+https://aws.amazon.com/blogs/big-data/persist-streaming-data-to-amazon-s3-using-amazon-kinesis-firehose-and-aws-lambda/
+
 API to locally buffer and upload JSON streams to S3 files
 S3 Uploader is provided but other implementations can be created
-Upload is based on size limit and time limits
+Upload is based on size limit and time limit
 Multiple streams can be created with domain and namespace hierarchy
 
 to run with S3 uploader AWS credentials must be setup to be used by the AWS SDK:
