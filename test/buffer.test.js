@@ -1,6 +1,8 @@
 const assert = require('assert');
 const expect = require('chai').expect;
-const uploader = require('./s3UploaderMock');
+const uploaderMock = require('./s3UploaderMock');
+
+
 const bufferModule = require('../index');
 
 describe('append test', async () => {
@@ -12,6 +14,8 @@ describe('append test', async () => {
             r = await buffer.append('test_ns', 'ns1',  {id: 123, data: 'data'})
         }
         expect(r).to.equal(true);
+        await buffer.close('test_ns', 'ns1');
+
     });
 
 });
