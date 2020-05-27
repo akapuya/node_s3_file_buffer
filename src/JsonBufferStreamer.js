@@ -26,7 +26,9 @@ module.exports = class JsonBufferStreamer {
         this.path = filesPath;
         this.onUpload = onUpload;
         this.schedulerInterval = schedulerIntervalSec * 1000;
-        this.scheduler();
+        if (this.schedulerInterval) {
+            this.scheduler();
+        }
     }
 
     async open(domain, namespace, sizeLimit = 100000, timeLimit = 60) {
@@ -90,6 +92,7 @@ module.exports = class JsonBufferStreamer {
             delete (this.buffers[identifier]);
             await this.upload();
         }
+        return true;
     }
 
     async upload() {
@@ -139,7 +142,7 @@ module.exports = class JsonBufferStreamer {
     }
 
     async scheduler() {
-        while(true) {
+        while(true && !this.shuttingDown) {
             console.log('scheduled flush');
             try {
                 await this.scheduledFlush();
