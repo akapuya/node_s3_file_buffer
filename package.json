@@ -1,6 +1,6 @@
 {
   "name": "s3_file_append",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Buffer data on files, allow append and write to S3",
   "main": "index.js",
   "scripts": {
