@@ -15,7 +15,7 @@ module.exports = class S3Uploader {
         try {
             if (!this.bucket) throw new Error('Bucket not assigned, use init function for s3Uploader');
             const data = fs.createReadStream(file_name);
-            const params = {Bucket: this.bucket, Key: domain + '/' + namespace + '/' + new Date().toISOString(), Body: data};
+            const params = {Bucket: this.bucket, Key: domain + '/' + namespace + '/' + new Date().toISOString().split(':').join('-'), Body: data};
             const r = await s3.putObject(params).promise();
             return r;
         } catch (err) {

@@ -26,7 +26,7 @@ module.exports = class JsonBufferStreamer {
         this.path = filesPath;
         this.onUpload = onUpload;
         this.schedulerInterval = schedulerIntervalSec * 1000;
-        if (this.schedulerInterval) {
+        if (this.schedulerInterval !== 0) {
             this.scheduler();
         }
     }
@@ -47,7 +47,8 @@ module.exports = class JsonBufferStreamer {
                 size_limit: sizeLimit, // bytes
                 time_limit: timeLimit, // seconds
                 rec_count: 0,
-                created: new Date()
+                created: new Date(),
+                size: 0
             };
             fs.appendFileSync(fname, '[', {flag: 'as'});
         }
@@ -62,11 +63,11 @@ module.exports = class JsonBufferStreamer {
         if (buffer.rec_count !== 0) {
             separator = ',';
         }
-        const r = fs.appendFileSync(fName, separator + JSON.stringify(json), {flag: 'as'});
+        const js = JSON.stringify(json);
+        fs.appendFileSync(fName, separator + js, {flag: 'as'});
         buffer.rec_count++;
-        const stats = fs.statSync(fName)
-        const fileSizeInBytes = stats["size"]
-        if (buffer.size_limit <= fileSizeInBytes) {
+        buffer.size += js.length;
+        if (buffer.size >= buffer.size_limit) {
             await this.close(domain, namespace);
             if (!this.shuttingDown) await this.open(buffer.domain, buffer.namespace, buffer.size_limit, buffer.time_limit);
         }
@@ -77,18 +78,20 @@ module.exports = class JsonBufferStreamer {
     async scheduledFlush() {
         for (let k in this.buffers) {
             const buffer = this.buffers[k];
-            if (buffer.rec_count !== 0 && new Date(buffer.created.getTime() + 1000 * buffer.time_limit) <= new Date()) {
+            if (buffer.rec_count !== 0 && buffer.time_limit >0 && new Date(buffer.created.getTime() + 1000 * buffer.time_limit) <= new Date()) {
                 await this.close(buffer.domain, buffer.namespace);
                 if (!this.shuttingDown) await this.open(buffer.domain, buffer.namespace, buffer.size_limit, buffer.time_limit);
             }
         }
+        await this.upload();
     }
 
     async close(domain, namespace) {
         const identifier = domain + '.' + namespace;
         if (this.buffers[identifier]) {
-            fs.appendFileSync(this.buffers[identifier].file_name, ']', {flag: 'as'});
-            this.uploads.push(this.buffers[identifier]);
+            const buffer = this.buffers[identifier];
+            fs.appendFileSync(buffer.file_name, ']', {flag: 'as'});
+            this.uploads.push(buffer);
             delete (this.buffers[identifier]);
             await this.upload();
         }
@@ -106,10 +109,12 @@ module.exports = class JsonBufferStreamer {
                 await this.uploadBuffer(buffer);
                 fs.unlinkSync(buffer.file_name);
             } catch (err) {
+                console.log(err);
                 this.uploads.push(buffer);
             }
             if (tried > limit) {
-                throw new Error('failed uploading files');
+                console.log('failed uploading files');
+                break;
             }
             tried++;
         }
@@ -118,7 +123,9 @@ module.exports = class JsonBufferStreamer {
     async uploadBuffer(buffer) {
         const r = await this.uploader.upload(buffer);
         if (r) {
-            this.onUpload(r);
+            if (this.onUpload) {
+                this.onUpload(r);
+            }
         }
         else {
             throw new Error('upload failed for namespace ' + buffer.identifier + ' file ' + buffer.file_name);
@@ -142,16 +149,16 @@ module.exports = class JsonBufferStreamer {
     }
 
     async scheduler() {
+        await sleep(this.schedulerInterval);
         while(true && !this.shuttingDown) {
-            console.log('scheduled flush');
             try {
+                console.log('scheduled flush waking');
                 await this.scheduledFlush();
+                console.log('scheduled flush completed');
             } catch (err) {
                 console.log(err);
             }
-            console.log('scheduled flush completed');
             await sleep(this.schedulerInterval);
-            console.log('scheduled flush waking')
         }
     }
 }
