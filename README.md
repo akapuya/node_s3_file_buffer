@@ -35,6 +35,8 @@ flush() - used to flush all the buffers by uploading them using the uploader
 shutDown() - used to initiate service shutdown, all files will be flushed and uploaded, all incoming append requests 
 will be refused.
 
+NOTE - AWS failures may occur silently, typically due to misconfiguration of AWS credentials
+
 
 
 
