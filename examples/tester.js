@@ -1,6 +1,7 @@
 const S3Uploader = require('../index').S3Uploader;
 const JsonBufferStreamer = require('../index').JsonBufferStreamer;
 const randJson = require('./jsons').getRandJson;
+const bucket = process.env.S3_UPLOADER_BUCKET;
 
 function sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
@@ -8,7 +9,7 @@ function sleep(ms) {
 
 async function test(json) {
         try {
-                const s3Uploader = new S3Uploader('djvm-test1');
+                const s3Uploader = new S3Uploader(bucket);
                 const buffer = new JsonBufferStreamer(s3Uploader, 'data', (uploadData) => {
                         console.log('file uploaded', uploadData);
                 }, 10);

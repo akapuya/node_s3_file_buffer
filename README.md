@@ -11,7 +11,9 @@ Upload is based on size limit and time limit
 Multiple streams can be created with domain and namespace hierarchy
 
 to run with S3 uploader AWS credentials must be setup to be used by the AWS SDK:
-check this for setting up the credentilas: https://docs.aws.amazon.com/amazonswf/latest/awsrbflowguide/set-up-creds.html
+check this for setting up the credentials: https://docs.aws.amazon.com/amazonswf/latest/awsrbflowguide/set-up-creds.html
+set S3_UPLOADER_BUCKET env var name to specify which bucket files are written to.
+
 
 the JsonBufferStreamer class requires the following parameters to instantiate:
 uploader -  a class that implements the - async upload({file_name, domain, namespace}) signature
